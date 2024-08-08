@@ -1,32 +1,42 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
 	"net/http"
-	services "task_managment_api/data"
-	models "task_managment_api/models"
+	"task_managment_api/data"
+	"task_managment_api/models"
+
+	"github.com/gin-gonic/gin"
 )
 
-func GetTasks(c *gin.Context) {
-	tasks, err := services.GetTasks()
+type TaskController struct {
+	taskService data.TaskService
+}
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"Error": err.Error()})
+func NewTaskController(taskService data.TaskService) *TaskController {
+	return &TaskController{
+		taskService: taskService,
 	}
+}
 
-	if len(tasks) == 0 {
-		c.JSON(http.StatusOK, gin.H{"Message": "No task is added yet"})
+func (tc *TaskController) GetTasks(c *gin.Context) {
+	ctx := context.TODO()
+	tasks, err := tc.taskService.GetTasks(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
+	if len(tasks) == 0 {
+		c.JSON(http.StatusOK, gin.H{"message": "No tasks found"})
+		return
+	}
 	c.JSON(http.StatusOK, tasks)
 }
 
-func GetTaskById(c *gin.Context) {
-
+func (tc *TaskController) GetTaskByID(c *gin.Context) {
 	id := c.Param("id")
-	task, err := services.GetTasksByTaskID(id)
-
+	ctx := context.TODO()
+	task, err := tc.taskService.GetTaskByID(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -34,53 +44,44 @@ func GetTaskById(c *gin.Context) {
 	c.JSON(http.StatusOK, task)
 }
 
-func UpdateTaskById(c *gin.Context) {
+func (tc *TaskController) UpdateTaskByID(c *gin.Context) {
 	id := c.Param("id")
-	var json models.Task
-	err := c.BindJSON(&json)
-	if err != nil {
+	var task models.Task
+	if err := c.BindJSON(&task); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err = services.UpdateTaskById(id, json)
+	ctx := context.TODO()
+	err := tc.taskService.UpdateTaskByID(ctx, id, task)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{"message": "Task updated successfully"})
-
 }
 
-func DeleteTaskById(c *gin.Context) {
-
+func (tc *TaskController) DeleteTaskByID(c *gin.Context) {
 	id := c.Param("id")
-
-	err := services.DeleteTaskById(id)
-
+	ctx := context.TODO()
+	err := tc.taskService.DeleteTaskByID(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
 }
 
-func AddTask(c *gin.Context) {
-
-	var json models.Task
-	err := c.BindJSON(&json)
-	if err != nil {
+func (tc *TaskController) AddTask(c *gin.Context) {
+	var task models.Task
+	if err := c.BindJSON(&task); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	err = services.AddTask(json)
-
+	ctx := context.TODO()
+	err := tc.taskService.AddTask(ctx, task)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
-	c.JSON(http.StatusCreated, gin.H{"message": "task added successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Task added successfully"})
 }

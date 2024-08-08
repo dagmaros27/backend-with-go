@@ -1,21 +1,18 @@
 package router
 
 import (
+	"task_managment_api/controllers"
 	"github.com/gin-gonic/gin"
-	c "task_managment_api/controllers"
 )
 
-
-func Init(){
+func SetupRouter(taskController *controllers.TaskController) *gin.Engine {
 	router := gin.Default()
-	
 
-	//routes
-	router.GET("/tasks",c.GetTasks)
-	router.GET("/tasks/:id", c.GetTaskById)
-	router.POST("/tasks", c.AddTask)
-	router.DELETE("/tasks/:id", c.DeleteTaskById)
-	router.PUT("/tasks/:id", c.UpdateTaskById)
-	
-	router.Run("localhost:3000")
+	router.GET("/tasks", taskController.GetTasks)
+	router.GET("/tasks/:id", taskController.GetTaskByID)
+	router.POST("/tasks", taskController.AddTask)
+	router.PUT("/tasks/:id", taskController.UpdateTaskByID)
+	router.DELETE("/tasks/:id", taskController.DeleteTaskByID)
+
+	return router
 }
