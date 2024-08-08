@@ -15,7 +15,7 @@ func Init(){
 	router.GET("/tasks/:id", c.GetTaskById)
 	router.POST("/tasks", c.AddTask)
 	router.DELETE("/tasks/:id", c.DeleteTaskById)
-	router.PUT("tasks/:id", c.UpdateTaskById)
+	router.PUT("/tasks/:id", c.UpdateTaskById)
 	
 	router.Run("localhost:3000")
 }
