@@ -2,57 +2,72 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 )
 
-func evaluateAverageGrade(grades []int) int {
-	if len(grades) == 0 {
-		return 0
-	}
-	total := 0
-	for _, val := range grades {
-		total += val
-	}
-	average := float64(total) / float64(len(grades))
-	return int(average)
-}
-
-func isValidGrade(val int) bool {
-	return val >= 0 && val <= 100
-}
-
 func main() {
+	name, grades := getStudentInfo()
+	displayResults(name, grades)
+}
+
+func getStudentInfo() (string, map[string]int) {
 	var name string
-	fmt.Print("Enter name: ")
+	fmt.Print("Enter student name: ")
 	fmt.Scanln(&name)
 
-	subjects := make(map[string]int)
-	grades := make([]int, 0)
+	var numSubjects int
+	fmt.Print("Enter number of subjects: ")
+	fmt.Scanln(&numSubjects)
 
-	fmt.Println("Enter subject and respective grade (e.g., 'English 100'). Type 'q' to finish:")
-
-	for {
+	grades := make(map[string]int, numSubjects)
+	for i := 0; i < numSubjects; i++ {
 		var subject string
 		var grade int
-		fmt.Scanln(&subject, &grade)
+		var err error
 
-		if subject == "q" {
-			break
+		fmt.Printf("Enter subject %d name: ", i+1)
+		fmt.Scanln(&subject)
+
+		for {
+			fmt.Printf("Enter grade for %s (0-100): ", subject)
+			var gradeInput string
+			fmt.Scanln(&gradeInput)
+
+			grade, err = strconv.Atoi(gradeInput)
+
+			if err != nil {
+				fmt.Println("Invalid grade. Please enter a value between 0 and 100.")
+				continue
+			}
+			if grade >= 0 && grade <= 100 {
+				break
+			}
+			fmt.Println("Invalid grade. Please enter a value between 0 and 100.")
 		}
 
-		if !isValidGrade(grade) {
-			fmt.Println("Grade must be between 0 and 100. Please try again.")
-			continue
-		}
-
-		subjects[subject] = grade
-		grades = append(grades, grade)
-		fmt.Println("Enter next subject and grade or type 'q' to finish:")
+		grades[subject] = grade
 	}
 
-	fmt.Printf("\nName: %s\n", name)
-	fmt.Printf("%-10s %s\n", "Subject", "Grade")
-	for subject, val := range subjects {
-		fmt.Printf("%-10s %d\n", subject, val)
+	return name, grades
+}
+
+func calculateAverage(grades map[string]int) int {
+	var sum int
+	for _, grade := range grades {
+		sum += grade
 	}
-	fmt.Printf("%-10s %d\n", "Average:", evaluateAverageGrade(grades))
+	return sum / (len(grades) - 1)
+
+}
+
+func displayResults(name string, grades map[string]int) {
+	fmt.Printf("\nStudent Name: %s\n", name)
+	for subject, grade := range grades {
+
+		fmt.Printf("%s: %d\n", subject, grade)
+	}
+
+	avg := calculateAverage(grades)
+	fmt.Printf("%s: %d\n", "Average", avg)
+
 }
