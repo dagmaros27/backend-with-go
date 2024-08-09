@@ -11,11 +11,11 @@ import (
 )
 
 type TaskService interface {
-	GetTasks(ctx context.Context) ([]models.Task, error)
-	GetTaskByID(ctx context.Context, taskID string) (models.Task, error)
-	AddTask(ctx context.Context, task models.Task) error
-	UpdateTaskByID(ctx context.Context, taskID string, updatedTask models.Task) error
-	DeleteTaskByID(ctx context.Context, taskID string) error
+	GetTasks() ([]models.Task, error)
+	GetTaskByID( taskID string) (models.Task, error)
+	AddTask( task models.Task) error
+	UpdateTaskByID( taskID string, updatedTask models.Task) error
+	DeleteTaskByID( taskID string) error
 }
 
 type MongoTaskService struct {
@@ -28,28 +28,27 @@ func NewMongoTaskService(db *mongo.Database) TaskService {
 	}
 }
 
-func (ts *MongoTaskService) GetTasks(ctx context.Context) ([]models.Task, error) {
+func (ts *MongoTaskService) GetTasks() ([]models.Task, error) {
 	var tasks []models.Task
-	cursor, err := ts.collection.Find(ctx, bson.D{})
+	cursor, err := ts.collection.Find(context.TODO(), bson.D{})
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
 
-	if err := cursor.All(ctx, &tasks); err != nil {
+	if err := cursor.All(context.TODO(), &tasks); err != nil {
 		return nil, err
 	}
 	return tasks, nil
 }
 
-func (ts *MongoTaskService) GetTaskByID(ctx context.Context, taskID string) (models.Task, error) {
+func (ts *MongoTaskService) GetTaskByID( taskID string) (models.Task, error) {
 	var task models.Task
 	objectID, err := primitive.ObjectIDFromHex(taskID)
 	if err != nil {
 		return models.Task{}, err
 	}
 
-	err = ts.collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&task)
+	err = ts.collection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&task)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return models.Task{}, errors.New("task not found")
@@ -60,12 +59,12 @@ func (ts *MongoTaskService) GetTaskByID(ctx context.Context, taskID string) (mod
 	return task, nil
 }
 
-func (ts *MongoTaskService) AddTask(ctx context.Context, task models.Task) error {
-	_, err := ts.collection.InsertOne(ctx, task)
+func (ts *MongoTaskService) AddTask( task models.Task) error {
+	_, err := ts.collection.InsertOne(context.TODO(), task)
 	return err
 }
 
-func (ts *MongoTaskService) UpdateTaskByID(ctx context.Context, taskID string, updatedTask models.Task) error {
+func (ts *MongoTaskService) UpdateTaskByID(taskID string, updatedTask models.Task) error {
 	objectID, err := primitive.ObjectIDFromHex(taskID)
 	if err != nil {
 		return err
@@ -89,7 +88,7 @@ func (ts *MongoTaskService) UpdateTaskByID(ctx context.Context, taskID string, u
 		return errors.New("no fields to update")
 	}
 
-	result, err := ts.collection.UpdateOne(ctx, bson.M{"_id": objectID}, bson.M{"$set": update})
+	result, err := ts.collection.UpdateOne(context.TODO(), bson.M{"_id": objectID}, bson.M{"$set": update})
 	if err != nil {
 		return err
 	}
@@ -99,13 +98,13 @@ func (ts *MongoTaskService) UpdateTaskByID(ctx context.Context, taskID string, u
 	return nil
 }
 
-func (ts *MongoTaskService) DeleteTaskByID(ctx context.Context, taskID string) error {
+func (ts *MongoTaskService) DeleteTaskByID(taskID string) error {
 	objectID, err := primitive.ObjectIDFromHex(taskID)
 	if err != nil {
 		return err
 	}
 
-	result, err := ts.collection.DeleteOne(ctx, bson.M{"_id": objectID})
+	result, err := ts.collection.DeleteOne(context.TODO(), bson.M{"_id": objectID})
 	if err != nil {
 		return err
 	}

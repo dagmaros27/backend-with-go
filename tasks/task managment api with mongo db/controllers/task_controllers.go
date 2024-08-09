@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"context"
+	//"context"
 	"net/http"
 	"task_managment_api/data"
 	"task_managment_api/models"
@@ -20,8 +20,7 @@ func NewTaskController(taskService data.TaskService) *TaskController {
 }
 
 func (tc *TaskController) GetTasks(c *gin.Context) {
-	ctx := context.TODO()
-	tasks, err := tc.taskService.GetTasks(ctx)
+	tasks, err := tc.taskService.GetTasks()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -35,8 +34,7 @@ func (tc *TaskController) GetTasks(c *gin.Context) {
 
 func (tc *TaskController) GetTaskByID(c *gin.Context) {
 	id := c.Param("id")
-	ctx := context.TODO()
-	task, err := tc.taskService.GetTaskByID(ctx, id)
+	task, err := tc.taskService.GetTaskByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -51,8 +49,7 @@ func (tc *TaskController) UpdateTaskByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	ctx := context.TODO()
-	err := tc.taskService.UpdateTaskByID(ctx, id, task)
+	err := tc.taskService.UpdateTaskByID(id, task)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -62,8 +59,7 @@ func (tc *TaskController) UpdateTaskByID(c *gin.Context) {
 
 func (tc *TaskController) DeleteTaskByID(c *gin.Context) {
 	id := c.Param("id")
-	ctx := context.TODO()
-	err := tc.taskService.DeleteTaskByID(ctx, id)
+	err := tc.taskService.DeleteTaskByID( id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -77,8 +73,7 @@ func (tc *TaskController) AddTask(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	ctx := context.TODO()
-	err := tc.taskService.AddTask(ctx, task)
+	err := tc.taskService.AddTask(task)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
