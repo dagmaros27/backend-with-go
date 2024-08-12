@@ -13,7 +13,7 @@ func main() {
 	library.AddMember(m.Member{ID: 1, Name: "Alice"}) 
 	library.AddMember(m.Member{ID: 2, Name: "Bob"})  
 
-	controller := c.NewLibraryController(&library)
+	controller := c.NewLibraryController(library)
 	controller.Run()
 	}
 	

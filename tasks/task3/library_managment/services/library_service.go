@@ -21,8 +21,8 @@ type Library struct {
 	members map[int]m.Member
 }
 
-func NewLibrary() Library {
-	return Library{
+func NewLibrary() LibraryManager {
+	return &Library{
 		books:   make(map[int]m.Book),
 		members: make(map[int]m.Member),
 	}

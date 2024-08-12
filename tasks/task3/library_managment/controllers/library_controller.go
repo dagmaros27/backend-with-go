@@ -18,10 +18,10 @@ func clearConsole() {
 
 
 type LibraryController struct {
-	library *s.Library
+	library s.LibraryManager
 }
 
-func NewLibraryController(library *s.Library) *LibraryController {
+func NewLibraryController(library s.LibraryManager) *LibraryController {
 	return &LibraryController{library: library}
 }
 
