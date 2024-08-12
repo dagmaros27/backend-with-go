@@ -208,3 +208,7 @@ The API server will be up and running at http://localhost:3000.
 ## Testing
 
 Use Postman to test each endpoint. Additionally, you can verify data correctness by querying MongoDB directly using the MongoDB shell or MongoDB Compass.
+
+## Postman Documentation
+
+- The postman documentation for this API is available [here](https://documenter.getpostman.com/view/25928149/2sA3rzJCSf#53f19b62-1b16-450a-b0ca-75427dba206f).
