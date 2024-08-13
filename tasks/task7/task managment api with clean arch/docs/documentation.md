@@ -102,7 +102,7 @@ go mod download
 go run delivery/main.go
 ```
 
-The server will be running at `http://localhost:3000`.
+The server will be running at `http://localhost:8080`.
 
 ## API Endpoints
 
@@ -272,7 +272,7 @@ curl -X POST http://localhost:8080/tasks \
 
 ## Environment Variables
 
-The API uses a `.env` file for configuration. Ensure the following environment variables are set in your `.env` file:
+The API uses a `.env` file for configuration. Ensure the following environment variables should be set in your `.env` file:
 
 - `APP_ENV`: The environment in which the app is running (e.g., development, production).
 - `DB_URI`: The URI for connecting to MongoDB.
