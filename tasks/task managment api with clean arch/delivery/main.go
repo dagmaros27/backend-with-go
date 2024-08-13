@@ -1,10 +1,13 @@
-// main.go
 package main
 
 import (
 	"context"
 	"log"
+	bootstrap "task_managment_api"
+	"task_managment_api/delivery/controllers"
 	"task_managment_api/delivery/router"
+	"task_managment_api/repositories"
+	"task_managment_api/usecases"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,32 +15,63 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func main() {
-	
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+type Application struct {
+	Db  *mongo.Database
+	Env *bootstrap.Env
+}
+
+func App() Application {
+	app := &Application{}
+	app.Env = bootstrap.NewEnv()
+	app.Db = NewMongoDatabase(app.Env)
+	return *app
+}
+
+//initialize a new database connection and return the database instance
+func NewMongoDatabase(env *bootstrap.Env) *mongo.Database {
+	clientOptions := options.Client().ApplyURI(env.DbUri)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
-	
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	db := client.Database("task_manager")
-	EnsureIndexes(db)
-	
 
-	r := router.SetupRouter(db, time.Second * 3)
-	r.Run(":8080")
+	db := client.Database(env.DbName)
+
+	err = EnsureIndexes(db, env.DbUserCollection)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return db
 }
 
-
-
-//to enforce username uniqueness in the db
-func EnsureIndexes(db *mongo.Database) error {
-	userCollection := db.Collection("users")
+//make sure username is unique in database level
+func EnsureIndexes(db *mongo.Database, userCollectionString string) error {
+	userCollection := db.Collection(userCollectionString)
 	indexModel := mongo.IndexModel{
-		Keys:    bson.M{"username": 1}, 
+		Keys:    bson.M{"username": 1},
 		Options: options.Index().SetUnique(true),
 	}
 
 	_, err := userCollection.Indexes().CreateOne(context.TODO(), indexModel)
 	return err
+}
+
+
+func main() {
+
+	app := App()
+
+	tr := repositories.NewTaskRepository(app.Db, app.Env.DbTaskCollection)
+	tc := repositories.NewUserRepository(app.Db, app.Env.DbUserCollection)
+
+	timeOut := time.Second*3
+	
+	taskController := controllers.NewTaskController(usecases.NewTaskUsecase(tr, timeOut)) 
+	userController := controllers.NewUserController(usecases.NewUserUsecase(tc, timeOut))
+
+
+	r := router.SetupRouter(app.Db, taskController, userController)
+	r.Run(":8080")	
 }
