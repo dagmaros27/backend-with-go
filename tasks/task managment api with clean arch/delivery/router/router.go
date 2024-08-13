@@ -3,14 +3,22 @@ package router
 import (
 	"task_managment_api/delivery/controllers"
 	"task_managment_api/infrastructure"
+	"task_managment_api/repositories"
+	"task_managment_api/usecases"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func SetupRouter(db *mongo.Database, taskController *controllers.TaskController, userController *controllers.UserController) *gin.Engine {
+func SetupRouter(db *mongo.Database, timeOut time.Duration) *gin.Engine {
 
+	tr := repositories.NewTaskRepository(db)
+	tc := repositories.NewUserRepository(db)
 	
+	taskController := controllers.NewTaskController(usecases.NewTaskUsecase(tr, timeOut)) 
+	userController := controllers.NewUserController(usecases.NewUserUsecase(tc, timeOut))
+
 	router := gin.Default()
 
 	// public routes

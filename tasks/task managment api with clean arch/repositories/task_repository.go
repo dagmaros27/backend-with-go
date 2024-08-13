@@ -15,13 +15,12 @@ type taskRepository struct {
 	collection *mongo.Collection
 }
 
-func NewTaskRepository(db *mongo.Database, taskCollectionString string) domain.TaskRepository {
+func NewTaskRepository(db *mongo.Database) domain.TaskRepository {
 	return &taskRepository{
-		collection: db.Collection(taskCollectionString),
+		collection: db.Collection(domain.CollectionTask),
 	}
 }
 
-// GetTasks retrieves all tasks from the database.
 func (ts *taskRepository) GetTasks(c context.Context) ([]domain.Task, domain.CustomError) {
 	var tasks []domain.Task
 	cursor, err := ts.collection.Find(c, bson.D{})
@@ -35,39 +34,33 @@ func (ts *taskRepository) GetTasks(c context.Context) ([]domain.Task, domain.Cus
 	return tasks, domain.CustomError{}
 }
 
-// GetTaskByID retrieves a task from the database by its ID.
 func (ts *taskRepository) GetTaskByID(c context.Context, taskID string) (domain.Task, domain.CustomError) {
 	var task domain.Task
 	objectID, err := primitive.ObjectIDFromHex(taskID)
 	if err != nil {
-		return domain.Task{}, domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: "Invalid task ID"}
+		return domain.Task{}, domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: err.Error()}
 	}
 
 	err = ts.collection.FindOne(c, bson.M{"_id": objectID}).Decode(&task)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return domain.Task{}, domain.CustomError{ErrCode: http.StatusNotFound, ErrMessage: "Task not found"}
+			return domain.Task{}, domain.CustomError{ErrCode: http.StatusNotFound, ErrMessage: "task not found"}
 		}
-		return domain.Task{}, domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: "Error while retriving task"}
+		return domain.Task{}, domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: err.Error()}
 	}
 
 	return task, domain.CustomError{}
 }
 
-// CreateTask creates a new task in the database.
-func (ts *taskRepository) CreateTask(c context.Context, task domain.Task) domain.CustomError {
+func (ts *taskRepository) CreateTask(c context.Context,task domain.Task) domain.CustomError {
 	_, err := ts.collection.InsertOne(c, task)
-	if err != nil {
-		return domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: "Error while creating task"}
-	}
-	return domain.CustomError{}
+	return domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: err.Error()}
 }
 
-// UpdateTaskByID updates a task in the database by its ID.
 func (ts *taskRepository) UpdateTaskByID(c context.Context, updatedTask domain.Task) domain.CustomError {
 	objectID, err := primitive.ObjectIDFromHex(updatedTask.ID)
 	if err != nil {
-		return domain.CustomError{ErrCode: http.StatusBadRequest, ErrMessage: "Invalid task ID"}
+		return domain.CustomError{ErrCode: http.StatusBadRequest, ErrMessage:"invalid task id"}
 	}
 
 	update := bson.M{}
@@ -84,31 +77,30 @@ func (ts *taskRepository) UpdateTaskByID(c context.Context, updatedTask domain.T
 	if updatedTask.Status != "" {
 		update["status"] = updatedTask.Status
 	}
-
+	
 	result, err := ts.collection.UpdateOne(c, bson.M{"_id": objectID}, bson.M{"$set": update})
 	if err != nil {
-		return domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: "Error while updating task"}
+		return domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: err.Error()}
 	}
 	if result.MatchedCount == 0 {
-		return domain.CustomError{ErrCode: http.StatusNotFound, ErrMessage: "Task not found"}
+		return domain.CustomError{ErrCode: http.StatusNotFound, ErrMessage: "task not found"}
 	}
 	return domain.CustomError{}
 }
 
-// DeleteTaskByID deletes a task from the database by its ID.
 func (ts *taskRepository) DeleteTaskByID(c context.Context, taskID string) domain.CustomError {
 	objectID, err := primitive.ObjectIDFromHex(taskID)
 	if err != nil {
-		return domain.CustomError{ErrCode: http.StatusBadRequest, ErrMessage: "Invalid task id"}
+		return domain.CustomError{ErrCode: http.StatusBadRequest, ErrMessage: "invalid task id"}
 	}
 
 	result, err := ts.collection.DeleteOne(c, bson.M{"_id": objectID})
 	if err != nil {
-		return domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: "Error while deleting task"}
+		return domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: err.Error()}
 	}
 
 	if result.DeletedCount == 0 {
-		return domain.CustomError{ErrCode: http.StatusNotFound, ErrMessage: "Task not found"}
+		return domain.CustomError{ErrCode: http.StatusNotFound, ErrMessage: "task not found"}
 	}
 	return domain.CustomError{}
 }

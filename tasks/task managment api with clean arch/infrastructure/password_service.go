@@ -11,16 +11,16 @@ const (
 	hashingCost = 10
 )
 
-func HashPassword(password string) (string, domain.CustomError) {
+func HashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), hashingCost )
 	if err != nil {
-		return "", domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: "Error while hashing password"}
+		return "",err
 	}
-	return string(hashedPassword), domain.CustomError{}
+	return string(hashedPassword), nil
 }
 
 
-func VerifyPassword(user domain.User, password string) domain.CustomError{
+func VerifyPassword(user domain.User, password string)domain.CustomError{
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return  domain.CustomError{ErrCode: http.StatusUnauthorized, ErrMessage: "Invalid username or password"}

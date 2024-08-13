@@ -2,12 +2,13 @@ package usecases
 
 import (
 	"context"
-	"fmt"
-	"net/http"
-
+	//"errors"
+	//"net/http"
 	"task_managment_api/domain"
 	"task_managment_api/infrastructure"
 	"time"
+
+	//"go.mongodb.org/mongo-driver/mongo"
 )
 
 type userUsecase struct {
@@ -21,16 +22,12 @@ func NewUserUsecase(userRepository domain.UserRepository, ctxTimeout time.Durati
 
 
 func (uc *userUsecase)RegisterUser(c context.Context, user domain.User) domain.CustomError{
-	
 	_ ,err := uc.userRepository.GetUserByUsername(c, user.Username)
 
-	if err.ErrCode == 0{
-		return domain.CustomError{ErrCode: http.StatusConflict, ErrMessage: "User already exists"}
+	if err.ErrCode != 0 {
+		return err
 	}
-	if err.ErrMessage !=  "User not found" {
-		fmt.Println(err.ErrMessage)
-		return domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: "Error while checking user existence"}
-	}
+	
 
 
 	count, err := uc.userRepository.GetUserCount(c)
@@ -44,12 +41,6 @@ func (uc *userUsecase)RegisterUser(c context.Context, user domain.User) domain.C
 	} else {
 		user.Role = "user"
 	}	
-	hashed,err :=  infrastructure.HashPassword(user.Password)
-	if err.ErrCode != 0 {
-		return err
-	}
-	
-	user.Password = hashed
 	
 	return uc.userRepository.CreateUser(c, user)
 }
@@ -60,11 +51,7 @@ func (uc *userUsecase)AuthenticateUser(c context.Context, username, password str
 	user, err := uc.userRepository.GetUserByUsername(c, username)
 
 	if err.ErrCode != 0 {
-		if err.ErrCode ==  500{
-			return "", domain.CustomError{ErrCode: http.StatusInternalServerError, ErrMessage: "Error while checking user"}
-
-		}
-		return "", domain.CustomError{ErrCode: http.StatusUnauthorized, ErrMessage: "Invalid username or password"}
+		return "", err
 	}
 
 	err = infrastructure.VerifyPassword(user, password)

@@ -28,7 +28,7 @@ func NewTaskController(taskUsecase domain.TaskUsecase) *TaskController {
 func (tc *TaskController) GetTasks(c *gin.Context) {
 	tasks, err := tc.taskUsecase.GetTasks(c)
 	if err.ErrCode != 0  {
-		c.JSON(err.ErrCode, gin.H{"message": err.ErrMessage})
+		c.JSON(err.ErrCode, gin.H{"error": err.ErrMessage})
 		return
 	}
 	if len(tasks) == 0 {
@@ -52,7 +52,7 @@ func (tc *TaskController) UpdateTaskByID(c *gin.Context) {
 	id := c.Param("id")
 	var task domain.Task
 	if err := c.ShouldBindJSON(&task); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid JSON"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	err := tc.taskUsecase.UpdateTaskByID(c,id, task)
@@ -76,7 +76,7 @@ func (tc *TaskController) DeleteTaskByID(c *gin.Context) {
 func (tc *TaskController) CreateTask(c *gin.Context) {
 	var task domain.Task
 	if err := c.ShouldBindJSON(&task); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid JSON"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	
@@ -101,7 +101,7 @@ func (uc *UserController) RegisterUser(c *gin.Context) {
 	var user domain.User
 	
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid JSON"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -120,7 +120,7 @@ func (uc *UserController) LoginUser(c *gin.Context) {
 	var user domain.User
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message":"Invalid JSON"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -140,7 +140,7 @@ func (uc *UserController) PromoteUser(c *gin.Context) {
 	var user domain.UserToPromote
 
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid JSON"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 

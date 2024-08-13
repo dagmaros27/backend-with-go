@@ -2,8 +2,16 @@ package domain
 
 import (
 	"context"
+
 	"github.com/dgrijalva/jwt-go"
 )
+
+const (
+	CollectionTask = "tasks"
+	CollectionUser = "users"
+)
+
+var JwtSecret string = "samketnon"
 
 type Claims struct {
 	UserId string `json:"userId"`
@@ -57,6 +65,7 @@ type TaskUsecase interface {
 type UserRepository interface {
 	CreateUser(c context.Context, user User) CustomError
 	GetUserByUsername(c context.Context, username string) (User, CustomError)
+	GetUserByID(c context.Context, userID string) (User, CustomError)
 	UpdateUser(c context.Context, user User) CustomError
 	GetUserCount(c context.Context)(int64,CustomError)
 }
